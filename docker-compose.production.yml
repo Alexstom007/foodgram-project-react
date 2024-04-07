@@ -14,7 +14,7 @@ services:
     env_file: .env
 
   backend:
-    image: alex368/foodgram_backend
+    image: alex372/foodgram_backend
     volumes:
       - static:/backend_static
       - media:/media
@@ -23,7 +23,7 @@ services:
       - db
 
   frontend:
-    image: alex368/foodgram_frontend
+    image: alex372/foodgram_frontend
     command: cp -r /app/build/. /frontend_static/
     volumes:
       - static:/frontend_static
@@ -32,12 +32,12 @@ services:
       - backend
 
   gateway:
-    image: alex368/foodgram_gateway
+    image: alex372/foodgram_gateway
     volumes:
       - static:/staticfiles/
       - media:/media
     env_file: .env
     ports:
-      - 9080:80
+      - 8000:80
     depends_on:
       - frontend
