@@ -69,6 +69,7 @@ class Recipe(models.Model):
     )
     image = models.ImageField(
         'Картинка',
+        upload_to='images/',
         blank=True
     )
     pub_date = models.DateTimeField(
