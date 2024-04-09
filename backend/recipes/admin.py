@@ -16,35 +16,35 @@ class IngredientInRecipe(admin.TabularInline):
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
-        "measurement_unit",
+        'name',
+        'measurement_unit',
     )
-    list_filter = ("name",)
+    list_filter = ('name',)
 
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
-        "author",
+        'name',
+        'author',
     )
-    list_filter = ("name", "author__username", "tags__name")
+    list_filter = ('name', 'author__username', 'tags__name')
     inlines = (IngredientInRecipe,)
 
 
 class Shopping_cartAdmin(admin.ModelAdmin):
     list_display = (
-        "user",
-        "recipe",
+        'user',
+        'recipe',
     )
-    list_filter = ("user",)
+    list_filter = ('user',)
 
 
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = (
-        "user",
-        "recipe",
+        'user',
+        'recipe',
     )
-    list_filter = ("user",)
+    list_filter = ('user',)
 
 
 admin.site.register(Tag, OtherAdmin)

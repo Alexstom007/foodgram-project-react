@@ -46,11 +46,6 @@ class UserCreateSerializer(UserCreateSerializer):
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name',
                   'password')
-        extra_kwargs = {
-            'first_name': {'required': True, 'allow_blank': False},
-            'last_name': {'required': True, 'allow_blank': False},
-            'email': {'required': True, 'allow_blank': False},
-        }
 
     def validate(self, obj):
         invalid_usernames = ['me', 'set_password',
@@ -252,14 +247,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'tags', 'image',
                   'name', 'text',
                   'cooking_time', 'author')
-        extra_kwargs = {
-            'ingredients': {'required': True, 'allow_blank': False},
-            'tags': {'required': True, 'allow_blank': False},
-            'name': {'required': True, 'allow_blank': False},
-            'text': {'required': True, 'allow_blank': False},
-            'image': {'required': True, 'allow_blank': False},
-            'cooking_time': {'required': True},
-        }
 
     def validate(self, obj):
         for field in ['name', 'text', 'cooking_time', 'image']:

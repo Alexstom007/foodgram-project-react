@@ -134,7 +134,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
             get_object_or_404(Favorite, user=request.user,
                               recipe=recipe).delete()
-            return Response({'detail': 'Рецепт успешно удален из избранного.'},
+            return Response({'detail': 'Рецепт удален из избранного.'},
                             status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post', 'delete'],
@@ -159,7 +159,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             get_object_or_404(Shopping_cart, user=request.user,
                               recipe=recipe).delete()
             return Response(
-                {'detail': 'Рецепт успешно удален из списка покупок.'},
+                {'detail': 'Рецепт удален из списка покупок.'},
                 status=status.HTTP_204_NO_CONTENT
             )
 
