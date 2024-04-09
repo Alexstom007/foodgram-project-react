@@ -41,7 +41,7 @@ jobs:
         with:
           context: ./backend/foodgram/
           push: true
-          tags: alex368/foodgram_backend:latest
+          tags: alex372/foodgram_backend:latest
 
   build_frontend_and_push_to_docker_hub:
     name: Push frontend Docker image to DockerHub
@@ -61,7 +61,7 @@ jobs:
         with:
           context: ./frontend/
           push: true
-          tags: alex368/foodgram_frontend:latest
+          tags: alex372/foodgram_frontend:latest
 
   build_gateway_and_push_to_docker_hub:
     name: Push gateway Docker image to DockerHub
@@ -81,7 +81,7 @@ jobs:
         with:
           context: ./nginx/
           push: true
-          tags: alex368/foodgram_gateway:latest
+          tags: alex372/foodgram_gateway:latest
 
   deploy:
     runs-on: ubuntu-latest
