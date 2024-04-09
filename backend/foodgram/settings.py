@@ -12,16 +12,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'default')
 
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = [
-    'localhost',
-    'foodgram007.zapto.org',
-    '127.0.0.1',
-    'backend',
-    '84.201.143.21',
-    'db'
-]
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -35,10 +28,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
+    'django_filters',
     'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
-    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -115,10 +108,10 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -138,7 +131,6 @@ REST_FRAMEWORK = {
         'api.pagination.CustomPaginator',
     ],
     'PAGE_SIZE': 6,
-    'SEARCH_PARAM': 'name',
 }
 
 DJOSER = {
@@ -152,3 +144,13 @@ CORS_URLS_REGEX = r'^/api/.*$'
 CSV_DIR = os.path.join(BASE_DIR, 'data')
 
 FILE_NAME = 'shopping_cart.txt'
+
+TAGS_RECIPES = [
+    {'name': 'Завтрак', 'color': '#ADFF2F', 'slug': 'breakfast'},
+    {'name': 'Обед', 'color': '#FFFF00', 'slug': 'lunch'},
+    {'name': 'Ужин', 'color': '#8A2BE2', 'slug': 'dinner'},
+]
+
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    'CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000'
+).split(',')
