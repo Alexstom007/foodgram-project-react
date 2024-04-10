@@ -254,33 +254,33 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'name', 'text',
                   'cooking_time', 'author')
 
-    def validate(self, value):
+    def validate(self, obf):
         for field in ['name', 'text', 'cooking_time', 'image']:
-            if not value.get(field):
+            if not obf.get(field):
                 raise serializers.ValidationError(
                     f'{field} - Обязательное поле.'
                 )
-        if not value.get('tags'):
+        if not obf.get('tags'):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 тег.'
             )
-        for ingredient in value:
+        for ingredient in obf:
             ingredient_id = ingredient['ingredient']['id']
             if not Ingredient.objects.filter(id=ingredient_id).exists():
                 raise serializers.ValidationError(
                     f'Ингредиента с id {ingredient_id} нет в базе данных.'
                 )
-        if not value.get('ingredients'):
+        if not obf.get('ingredients'):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        inrgedient_id_list = [item['id'] for item in value.get('ingredients')]
+        inrgedient_id_list = [item['id'] for item in obf.get('ingredients')]
         unique_ingredient_id_list = set(inrgedient_id_list)
         if len(inrgedient_id_list) != len(unique_ingredient_id_list):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
             )
-        return value
+        return obf
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
