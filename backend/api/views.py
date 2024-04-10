@@ -1,15 +1,15 @@
 from django.db.models import Sum
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from foodgram.settings import FILE_NAME
-from recipes.models import (Favorite, Ingredient, Recipe, Recipe_ingredient,
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             Shopping_cart, Tag)
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from foodgram.settings import RECIPES_LIMIT, FILE_NAME
 from users.models import Subscribe, User
 from .filters import RecipeFilter
 from .pagination import CustomPaginator
@@ -66,16 +66,30 @@ class UserViewSet(mixins.CreateModelMixin,
     def subscribe(self, request, **kwargs):
         author = get_object_or_404(User, id=kwargs['pk'])
 
+        if author == request.user:
+            return Response('Нельзя подписаться на себя.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if Subscribe.objects.filter(user=request.user, author=author).exists():
+            return Response('Вы уже подписаны на этого автора.',
+                            status=status.HTTP_400_BAD_REQUEST)
+
         if request.method == 'POST':
+            if request.user.recipes.count() >= RECIPES_LIMIT:
+                return Response('Достигнут лимит рецептов',
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
             serializer = SubscribeAuthorSerializer(
                 author, data=request.data, context={"request": request})
             serializer.is_valid(raise_exception=True)
-            Subscribe.objects.create(user=request.user, author=author)
+            Subscribe.objects.create(user=request.user,
+                                     author=author)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            get_object_or_404(Subscribe, user=request.user,
+            get_object_or_404(Subscribe,
+                              user=request.user,
                               author=author).delete()
             return Response({'detail': 'Успешная отписка'},
                             status=status.HTTP_204_NO_CONTENT)
@@ -89,7 +103,6 @@ class IngredientViewSet(mixins.ListModelMixin,
     serializer_class = IngredientSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter, )
-    search_fields = ('^name', )
 
 
 class TagViewSet(mixins.ListModelMixin,
@@ -167,7 +180,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def download_shopping_cart(self, request, **kwargs):
         ingredients = (
-            Recipe_ingredient.objects
+            RecipeIngredient.objects
             .filter(recipe__shopping_recipe__user=request.user)
             .values('ingredient')
             .annotate(total_amount=Sum('amount'))

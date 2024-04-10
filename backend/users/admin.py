@@ -1,10 +1,14 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model, models
+from django.contrib.auth.admin import UserAdmin
 
 from . import models
 
+User = get_user_model()
 
-@admin.register(models.User)
-class UserAdmin(admin.ModelAdmin):
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
     list_display = (
         'username', 'pk', 'email', 'password', 'first_name', 'last_name',
     )

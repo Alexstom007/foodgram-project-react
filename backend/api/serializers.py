@@ -9,7 +9,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 
 from users.models import Subscribe, User
 from recipes.models import (Favorite, Ingredient, Recipe,
-                            Recipe_ingredient, Shopping_cart, Tag)
+                            RecipeIngredient, Shopping_cart, Tag)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -47,6 +47,11 @@ class UserCreateSerializer(UserCreateSerializer):
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name',
                   'password')
+        extra_kwargs = {
+            'first_name': {'required': True, 'allow_blank': False},
+            'last_name': {'required': True, 'allow_blank': False},
+            'email': {'required': True, 'allow_blank': False},
+        }
 
     def validate(self, obj):
         invalid_usernames = ['me', 'set_password',
@@ -185,7 +190,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         source='ingredient.measurement_unit')
 
     class Meta:
-        model = Recipe_ingredient
+        model = RecipeIngredient
         fields = ('id', 'name',
                   'measurement_unit', 'amount')
 
@@ -229,7 +234,7 @@ class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
     class Meta:
-        model = Recipe_ingredient
+        model = RecipeIngredient
         fields = ('id', 'amount')
 
 
@@ -249,33 +254,39 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                   'name', 'text',
                   'cooking_time', 'author')
 
-    def validate(self, obj):
+    def validate(self, value):
         for field in ['name', 'text', 'cooking_time', 'image']:
-            if not obj.get(field):
+            if not value.get(field):
                 raise serializers.ValidationError(
                     f'{field} - Обязательное поле.'
                 )
-        if not obj.get('tags'):
+        if not value.get('tags'):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 тег.'
             )
-        if not obj.get('ingredients'):
+        for ingredient in value:
+            ingredient_id = ingredient['ingredient']['id']
+            if not Ingredient.objects.filter(id=ingredient_id).exists():
+                raise serializers.ValidationError(
+                    f'Ингредиента с id {ingredient_id} нет в базе данных.'
+                )
+        if not value.get('ingredients'):
             raise serializers.ValidationError(
                 'Нужно указать минимум 1 ингредиент.'
             )
-        inrgedient_id_list = [item['id'] for item in obj.get('ingredients')]
+        inrgedient_id_list = [item['id'] for item in value.get('ingredients')]
         unique_ingredient_id_list = set(inrgedient_id_list)
         if len(inrgedient_id_list) != len(unique_ingredient_id_list):
             raise serializers.ValidationError(
                 'Ингредиенты должны быть уникальны.'
             )
-        return obj
+        return value
 
     @transaction.atomic
     def tags_and_ingredients_set(self, recipe, tags, ingredients):
         recipe.tags.set(tags)
-        Recipe_ingredient.objects.bulk_create(
-            [Recipe_ingredient(
+        RecipeIngredient.objects.bulk_create(
+            [RecipeIngredient(
                 recipe=recipe,
                 ingredient=Ingredient.objects.get(pk=ingredient['id']),
                 amount=ingredient['amount']
@@ -300,7 +311,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'cooking_time', instance.cooking_time)
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        Recipe_ingredient.objects.filter(
+        RecipeIngredient.objects.filter(
             recipe=instance,
             ingredient__in=instance.ingredients.all()).delete()
         self.tags_and_ingredients_set(instance, tags, ingredients)

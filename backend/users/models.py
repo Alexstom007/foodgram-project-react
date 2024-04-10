@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -28,9 +29,6 @@ class Subscribe(models.Model):
         verbose_name='Подписан'
     )
 
-    def __str__(self):
-        return f'{self.user.username} - {self.author.username}'
-
     class Meta:
         verbose_name = 'Подписка на авторов'
         verbose_name_plural = 'Подписки на авторов'
@@ -40,3 +38,12 @@ class Subscribe(models.Model):
                 name='unique_subscribe'
             )
         ]
+
+    def __str__(self):
+        return f'{self.user.username} - {self.author.username}'
+
+    def clean(self):
+        if self.user == self.author:
+            raise ValidationError(
+                'Нельзя подписаться на себя.'
+            )
