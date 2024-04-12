@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from colorfield.fields import ColorField
 
@@ -40,13 +40,6 @@ class Tag(models.Model):
         default='#FF0000',
         max_length=7,
         null=True,
-        validators=[
-            RegexValidator(
-                '^#([a-fA-F0-9]{6})',
-                message='Поле должно содержать HEX-код выбранного цвета.'
-            )
-        ]
-
     )
     slug = models.SlugField(
         'Уникальный слаг',
@@ -75,8 +68,10 @@ class Recipe(models.Model):
         'Время приготовления, мин',
         validators=[
             MinValueValidator(
-                1,
-                message='Время приготовления не может быть меньше 1')]
+                1, message='Время приготовления не может быть меньше 1 минуты'),
+            MaxValueValidator(
+                1440, message='Время приготовления не может быть долше 24 часов'),
+                ]
     )
     image = models.ImageField(
         'Картинка',

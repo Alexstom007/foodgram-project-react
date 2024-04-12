@@ -9,9 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from foodgram.settings import RECIPES_LIMIT, FILE_NAME
+from foodgram.settings import FILE_NAME
 from users.models import Subscribe, User
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .pagination import CustomPaginator
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
@@ -63,46 +63,48 @@ class UserViewSet(mixins.CreateModelMixin,
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(IsAuthenticated,))
-    def subscribe(self, request, **kwargs):
-        author = get_object_or_404(User, id=kwargs['pk'])
-
-        if author == request.user:
-            return Response('Нельзя подписаться на себя.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        if Subscribe.objects.filter(user=request.user, author=author).exists():
-            return Response('Вы уже подписаны на этого автора.',
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        if request.method == 'POST':
-            if request.user.recipes.count() >= RECIPES_LIMIT:
-                return Response('Достигнут лимит рецептов',
-                                status=status.HTTP_400_BAD_REQUEST)
-        else:
-            serializer = SubscribeAuthorSerializer(
-                author, data=request.data, context={"request": request})
-            serializer.is_valid(raise_exception=True)
-            Subscribe.objects.create(user=request.user,
-                                     author=author)
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-
+    def subscribe(self, request, pk):
+        author = get_object_or_404(User, id=pk)
+        subscription = Subscribe.objects.filter(
+            user=request.user, author=author)
+        if request.method == 'DELETE' and not subscription:
+            return Response(
+                {'errors': 'Не удается удалить несуществующую подписку.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if request.method == 'DELETE':
-            get_object_or_404(Subscribe,
-                              user=request.user,
-                              author=author).delete()
-            return Response({'detail': 'Успешная отписка'},
-                            status=status.HTTP_204_NO_CONTENT)
-
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if subscription:
+            return Response(
+                {'errors': 'Вы уже подписаны на этого пользователя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if author == request.user:
+            return Response(
+                {'errors': 'Не удается подписаться на себя.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Subscribe.objects.create(user=request.user, author=author)
+        serializer = SubscriptionsSerializer(
+            author,
+            context={
+                'request': request,
+                'format': self.format_kwarg,
+                'view': self
+            }
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
     queryset = Ingredient.objects.all()
-    permission_classes = (AllowAny, )
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = IngredientFilter
+    permission_classes = (AllowAny, )
     pagination_class = None
-    filter_backends = (filters.SearchFilter, )
 
 
 class TagViewSet(mixins.ListModelMixin,
@@ -123,9 +125,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'create', 'delete']
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return RecipeReadSerializer
-        return RecipeCreateSerializer
+        if self.action in ('create', 'partial_update'):
+            return RecipeCreateSerializer
+        return RecipeReadSerializer
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(IsAuthenticated,))

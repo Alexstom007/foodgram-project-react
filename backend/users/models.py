@@ -1,10 +1,28 @@
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F, Q
 
 
 class User(AbstractUser):
-    email = models.EmailField(max_length=254, unique=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    email = models.EmailField(
+        max_length=254,
+        unique=True)
+    username = models.CharField(
+        'Username',
+        max_length=150,
+        unique=True,
+        null=False,
+        blank=False)
+    first_name = models.CharField(
+        blank=False,
+        verbose_name='Имя',
+        max_length=150)
+    last_name = models.CharField(
+        blank=False,
+        verbose_name='Фамилия',
+        max_length=150)
 
     class Meta:
         ordering = ['id']
@@ -35,15 +53,10 @@ class Subscribe(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique_subscribe'
-            )
-        ]
-
+                name='unique_subscribe'),
+            models.CheckConstraint(
+                check=~Q(user=F('author')),
+                name='self_subscribe'),]
+        
     def __str__(self):
         return f'{self.user.username} - {self.author.username}'
-
-    def clean(self):
-        if self.user == self.author:
-            raise ValidationError(
-                'Нельзя подписаться на себя.'
-            )
