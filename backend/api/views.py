@@ -4,7 +4,7 @@ from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             Shopping_cart, Tag)
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -16,8 +16,8 @@ from .pagination import CustomPaginator
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeReadSerializer, RecipeSerializer,
-                          SetPasswordSerializer, SubscribeAuthorSerializer,
-                          SubscriptionsSerializer, TagSerializer,
+                          SetPasswordSerializer, SubscriptionsSerializer,
+                          TagSerializer,
                           UserCreateSerializer, UserReadSerializer)
 
 
@@ -95,6 +95,7 @@ class UserViewSet(mixins.CreateModelMixin,
             }
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 class IngredientViewSet(mixins.ListModelMixin,
                         mixins.RetrieveModelMixin,

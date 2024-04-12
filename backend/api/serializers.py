@@ -124,14 +124,14 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         )
 
     def get_recipes(self, obj):
-        recipes_limit = self.context['request'].query_params.get('recipes_limit')
-        if recipes_limit:
-            recipes = obj.recipes.all()[:int(recipes_limit)]
+        limit = self.context['request'].query_params.get('recipes_limit')
+        if limit:
+            recipes = obj.recipes.all()[:int(limit)]
         else:
             recipes = obj.recipes.all()
         return RecipeSerializer(
             recipes, many=True, read_only=True).data
-    
+
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -162,6 +162,7 @@ class SubscribeAuthorSerializer(serializers.ModelSerializer):
             and Subscribe.objects.filter(user=self.context['request'].user,
                                          author=obj).exists()
         )
+
     def get_recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -274,12 +275,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         ingredient_id_list = [item['id'] for item in obj.get('ingredients')]
         unique_ingredient_id_list = set(ingredient_id_list)
         if len(ingredient_id_list) != len(unique_ingredient_id_list):
-            raise serializers.ValidationError({'ingredients':'Ингредиенты должны быть уникальны.'})
+            raise serializers.ValidationError(
+                {'ingredients': 'Ингредиенты должны быть уникальны.'})
         for ingredient_id in ingredient_id_list:
             try:
                 Ingredient.objects.get(pk=ingredient_id)
             except ObjectDoesNotExist:
-                raise serializers.ValidationError({'ingredients':'Ингредиент не существует.'})
+                raise serializers.ValidationError(
+                    {'ingredients': 'Ингредиент не существует.'})
         return obj
 
     @transaction.atomic
