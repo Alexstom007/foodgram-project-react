@@ -56,7 +56,7 @@ class Subscribe(models.Model):
                 name='unique_subscribe'),
             models.CheckConstraint(
                 check=~Q(user=F('author')),
-                name='self_subscribe'),]
+                name='self_subscribe'), ]
 
     def __str__(self):
         return f'{self.user.username} - {self.author.username}'
