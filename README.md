@@ -37,7 +37,7 @@
 - Склонировать репозиторий:
 
 ```bash
-   git clone git@github.com:Alexstom007/backend_test_homework.git
+   git clone git@github.com:Alexstom007/foodgram-project-react.git
 ```
 
 ```bash
