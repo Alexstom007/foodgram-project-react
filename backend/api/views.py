@@ -67,12 +67,12 @@ class UserViewSet(mixins.CreateModelMixin,
         author = get_object_or_404(User, id=pk)
         subscription = Subscribe.objects.filter(
             user=request.user, author=author)
-        if request.method == 'DELETE' and not subscription:
-            return Response(
-                {'errors': 'Не удается удалить несуществующую подписку.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         if request.method == 'DELETE':
+            if not subscription:
+                return Response(
+                    {'errors': 'Не удается удалить несуществующую подписку.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         if subscription:
