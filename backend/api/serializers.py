@@ -327,7 +327,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             recipe=instance,
             ingredient__in=instance.ingredients.all()).delete()
         self.tags_and_ingredients_set(instance, tags, ingredients)
-        if image :
+        if image:
             instance.image = image
         instance.save()
         return instance
