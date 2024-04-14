@@ -1,6 +1,5 @@
 import base64
 
-from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from django.db import transaction
