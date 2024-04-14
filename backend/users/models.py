@@ -15,7 +15,8 @@ class User(AbstractUser):
     username = models.CharField(
         'Username',
         max_length=150,
-        unique=True,)
+        unique=True,
+        validators=[username_validator])
     first_name = models.CharField(
         verbose_name='Имя',
         max_length=150)
